@@ -58,19 +58,46 @@ def revise_text(json_path):
     fin = open(json_path, "r", encoding="UTF-8")
     jObj = json.load(fin)
     
+    fout = open(json_path.replace(".json", ".txt"), "w", encoding="UTF-8")
     sorted_keys = sorted(jObj.keys(), key = lambda x: int(x))
-    content = "\n".join([jObj.get(k) for k in sorted_keys])
-    lines = content.split("\n")
     prev_ln = []
-    buf = []
-    for ln in lines:
-        if len(prev_ln) > 5: prev_ln = prev_ln[1:]
-        if len(ln) <= 1: 
-            continue
-        
-        if ln not in prev_ln and len(chpat.findall(ln)) / len(ln) > 0.8:                     
-            buf.append(ln)            
-            prev_ln.append(ln)
+    for k in sorted_keys:
+        fout.write("# extracted montage: %s\n" % k)
+        lines = jObj[k].split("\n")
+        for ln in lines:
+            if len(prev_ln) > 5: prev_ln = prev_ln[1:]
+            if len(ln) <= 1: 
+                continue
+            
+            # comute min_distance between ln and all prev_ln's
+            if len(prev_ln) > 0:
+                min_dist = min([levenshtein(ln, prev_ln_x) \
+                                for prev_ln_x in prev_ln])
+            else:
+                min_dist = 10
+
+            if min_dist > 2 and len(chpat.findall(ln)) / len(ln) > 0.8:                                 
+                fout.write(ln + "\n")
+                prev_ln.append(ln)
+
+# copy from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
+def levenshtein(s1, s2):
+    if len(s1) < len(s2):
+        return levenshtein(s2, s1)
+
+    # len(s1) >= len(s2)
+    if len(s2) == 0:
+        return len(s1)
+
+    previous_row = range(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1 # j+1 instead of j since previous_row and current_row are one character longer
+            deletions = current_row[j] + 1       # than s2
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
     
-    open(json_path.replace(".json", ".txt"), "w", encoding="UTF-8")\
-         .write("\n".join(buf))
+    return previous_row[-1]
+    
