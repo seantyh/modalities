@@ -43,7 +43,6 @@ def google_detect_text(imgpath):
     image = vision_client.image(content=content)
 
     texts = image.detect_text(100)
-    pdb.set_trace()
     return texts
 
 def print_text(texts):

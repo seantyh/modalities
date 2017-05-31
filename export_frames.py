@@ -56,7 +56,7 @@ def export_subtitles(video_path, outdir, data_vec,
             out_counter += 1
 
     if len(out_buffer) > 0:
-        out_image = np.concatenate(out_buffer, 1)
+        out_image = np.concatenate(out_buffer, 0)
         cv2.imwrite(outdir + "/%04d.png" % out_counter, out_image)
 
 def attenuate_background(img, factor = 0.5, params = {}):
