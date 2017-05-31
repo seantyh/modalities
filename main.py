@@ -1,39 +1,49 @@
 
 import os
+import sys
 from download_youtube import *
 from find_threshold import *
 from export_frames import *
 from analyze_frames import *
 from text_detection import *
+from configparser import ConfigParser
 
-DOWNLOAD_VIDEO = False
-ANALYZE_IMAGE = False
-EXPORT_IMAGE = False
-DETECT_TEXT = False
-REVISE_TEXT = True
+def tp(instr):
+    toks = instr[1:-1].split(",")
+    return tuple(int(x) for x in toks)
 
 if __name__ == "__main__":
     
-    URL = "https://www.youtube.com/watch?v=i7gmio4w_sk"
-    VIDEO_PATH = "h:/supertaste_20170504.mp4"
-    OUT_DIR = "h:/supertaste_20170504"    
+    if len(sys.argv) > 1:
+        config_path = sys.argv[1]
+        config = ConfigParser()
+        config.read(config_path)
+    else:
+        print("main.py <config file>")
+        exit(-1)
+    
+    DOWNLOAD_VIDEO = config.getboolean("PROC", "DOWNLOAD_VIDEO")
+    ANALYZE_IMAGE = config.getboolean("PROC", "ANALYZE_IMAGE")
+    EXPORT_IMAGE = config.getboolean("PROC", "EXPORT_IMAGE")
+    DETECT_TEXT = config.getboolean("PROC", "DETECT_TEXT")
+    REVISE_TEXT = config.getboolean("PROC", "REVISE_TEXT")
+
+    URL = config.get("FILE", "URL")
+    VIDEO_PATH = config.get("FILE", "VIDEO_PATH")
+    OUT_DIR = config.get("FILE", "OUT_DIR")
     prefix = os.path.basename(VIDEO_PATH).split(".")[0]
     DATA_PATH = os.path.join(OUT_DIR, "{}.npy".format(prefix))
-    params = {"subtitle_color": (230, 230, 230),
-              "subtitle_height": -80,
-              "skip_frames": 340 * 30,
-              "end_frames": -1,
-              "motage_height": 10,
-              "debug_plot": True,
-              "white_debug": True}
-
+    params = {"subtitle_color": tp(config.get("PARAMS", "subtitle_color")),
+              "subtitle_height": config.getint("PARAMS", "subtitle_height"),
+              "skip_seconds": config.getint("PARAMS", "skip_seconds"),
+              "end_seconds": config.getint("PARAMS", "end_seconds"),
+              "montage_height": config.getint("PARAMS", "montage_height"),
+              "debug_plot": config.getboolean("PARAMS", "debug_plot"),
+              "white_debug": config.getboolean("PARAMS", "white_debug")}
+    
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
         print("Create new directory " + OUT_DIR)
-    else:
-        pass
-        # list(os.remove(OUT_DIR + "/" + x) for x in os.listdir(OUT_DIR))
-        # print("Reset contents in " + OUT_DIR)
 
     if DOWNLOAD_VIDEO:
         get_youtube(URL, VIDEO_PATH)

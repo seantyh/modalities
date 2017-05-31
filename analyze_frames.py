@@ -6,7 +6,7 @@ import pdb
 def analyze_whites(video_path, params = {}):
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
-    n_frame = params.get("end_frames", -1)
+    n_frame = params.get("end_seconds", -1) * fps
     if n_frame < 0:
         n_frame = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
@@ -17,7 +17,7 @@ def analyze_whites(video_path, params = {}):
     white_vec = np.zeros(int(n_frame), dtype = np.uint32)
     stateObj = 0
     frame_history = []
-    skip_frames = params.get("skip_frames", 0)
+    skip_frames = params.get("skip_seconds", 0) * fps
 
     while(cap.isOpened()):
         frame_counter += 1
