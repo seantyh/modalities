@@ -14,18 +14,18 @@ REVISE_TEXT = True
 
 if __name__ == "__main__":
     
-    URL = "https://www.youtube.com/watch?v=x6NwOxZBL9U"
-    VIDEO_PATH = "h:/chef_20170424.mp4"
-    OUT_DIR = "h:/chef_20170424"    
+    URL = "https://www.youtube.com/watch?v=i7gmio4w_sk"
+    VIDEO_PATH = "h:/supertaste_20170504.mp4"
+    OUT_DIR = "h:/supertaste_20170504"    
     prefix = os.path.basename(VIDEO_PATH).split(".")[0]
     DATA_PATH = os.path.join(OUT_DIR, "{}.npy".format(prefix))
     params = {"subtitle_color": (230, 230, 230),
               "subtitle_height": -80,
-              "skip_frames": 5 * 30,
+              "skip_frames": 340 * 30,
               "end_frames": -1,
               "motage_height": 10,
-              "debug_plot": False,
-              "white_debug": False}
+              "debug_plot": True,
+              "white_debug": True}
 
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
@@ -37,19 +37,17 @@ if __name__ == "__main__":
 
     if DOWNLOAD_VIDEO:
         get_youtube(URL, VIDEO_PATH)
-
+        
     if ANALYZE_IMAGE:
-        if not os.path.exists(DATA_PATH):
-            white_vec = analyze_whites(VIDEO_PATH, params)
-            np.save(DATA_PATH, white_vec)
-        else:
-            white_vec = np.load(DATA_PATH)
+        white_vec = analyze_whites(VIDEO_PATH, params)
+        np.save(DATA_PATH, white_vec)
     
     if EXPORT_IMAGE:
+        white_vec = np.load(DATA_PATH)
         sub_thres = get_subtitle_threshold(white_vec)
         print("Subtitle threshold: " + str(sub_thres))
         export_subtitles(VIDEO_PATH, OUT_DIR, white_vec, 
-                sub_thres, change_thres = 0.5)
+                sub_thres, change_thres = 0.5, params = params)
     
     if DETECT_TEXT:
         detect_text(OUT_DIR, prefix)

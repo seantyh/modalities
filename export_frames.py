@@ -42,8 +42,8 @@ def export_subtitles(video_path, outdir, data_vec,
             WHITE_DEBUG = params.get("white_debug", False)
             if WHITE_DEBUG:
                 cv2.putText(outimg, "%d, %.2f" % (cur_whites, change_ratio), \
-                        (0, 90), cv2.FONT_HERSHEY_PLAIN, 2.0, \
-                        (255, 0, 0), 2)
+                        (0, abs(sub_h)-10), cv2.FONT_HERSHEY_PLAIN, 2.0, \
+                        (0, 255, 255), 2)
 
             out_buffer.append(outimg)
     

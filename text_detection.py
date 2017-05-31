@@ -8,6 +8,9 @@ import glob
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = \
         "E:\\keys\\KyleBlackbox-424c3a405db3.json"
 chpat = re.compile("[\u4e00-\u9fff\uf900-\ufaff\uf900-\ufaff]")
+chpat_head = re.compile("^[^\u4e00-\u9fff\uf900-\ufaff\uf900-\ufaff]+")
+chpat_tail = re.compile("[^\u4e00-\u9fff\uf900-\ufaff\uf900-\ufaff]+$")
+
 def detect_text(outdir, prefix):
     txtObj = {}
     png_files = glob.glob(outdir + "/*.png")
@@ -69,16 +72,24 @@ def revise_text(json_path):
             if len(ln) <= 1: 
                 continue
             
+            san_ln = strip_non_zh(ln)
+            if len(san_ln) == 0: continue
+
             # comute min_distance between ln and all prev_ln's
             if len(prev_ln) > 0:
-                min_dist = min([levenshtein(ln, prev_ln_x) \
+                min_dist = min([levenshtein(san_ln, prev_ln_x) \
                                 for prev_ln_x in prev_ln])
             else:
                 min_dist = 10
 
-            if min_dist > 2 and len(chpat.findall(ln)) / len(ln) > 0.8:                                 
-                fout.write(ln + "\n")
-                prev_ln.append(ln)
+            if min_dist > 2 and len(chpat.findall(san_ln)) / len(san_ln) > 0.8:                                 
+                fout.write(san_ln + "\n")
+                prev_ln.append(san_ln)
+
+def strip_non_zh(inputs):
+    ret = chpat_head.sub("", inputs)
+    ret = chpat_tail.sub("", ret)
+    return ret
 
 # copy from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
 def levenshtein(s1, s2):
