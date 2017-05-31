@@ -16,7 +16,7 @@ def detect_text(outdir, prefix):
     png_files = glob.glob(outdir + "/*.png")
     for i, imgpath in enumerate(png_files):
         if not imgpath.endswith(".png"): continue
-        print("text detection: %s [%d%%]" % \
+        print("text detection: %s [%02d%%]" % \
                 (imgpath, i / len(png_files) * 100))
         texts = google_detect_text(os.path.join(outdir, imgpath))
         if len(texts) == 0: continue
@@ -26,7 +26,7 @@ def detect_text(outdir, prefix):
         except ValueError:
             img_idx = imgpath
         txtObj[img_idx] = texts[0].description
-        # if imgpath == "0002.png": break
+        # if img_key == "0002.png": break
 
     fout = open(os.path.join(outdir, "text_detect_%s.json" % prefix), 
             "w", encoding="UTF-8")
@@ -42,8 +42,8 @@ def google_detect_text(imgpath):
 
     image = vision_client.image(content=content)
 
-    texts = image.detect_text()
-
+    texts = image.detect_text(100)
+    pdb.set_trace()
     return texts
 
 def print_text(texts):

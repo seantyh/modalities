@@ -39,7 +39,8 @@ if __name__ == "__main__":
               "end_seconds": config.getint("PARAMS", "end_seconds"),
               "montage_height": config.getint("PARAMS", "montage_height"),
               "debug_plot": config.getboolean("PARAMS", "debug_plot"),
-              "white_debug": config.getboolean("PARAMS", "white_debug")}
+              "white_debug": config.getboolean("PARAMS", "white_debug"),
+              "attenuate_factor": config.getfloat("PARAMS", "attenuate_factor")}
     
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)

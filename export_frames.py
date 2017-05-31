@@ -38,14 +38,16 @@ def export_subtitles(video_path, outdir, data_vec,
             #         (cur_whites, prev_whites, change_ratio))
             prev_whites = cur_whites
             outimg = frame[sub_h:,:,:]
+            att_factor = params.get("attenuate_factor", 0.5)
+            attimg = attenuate_background(outimg, factor = att_factor)
 
             WHITE_DEBUG = params.get("white_debug", False)
             if WHITE_DEBUG:
-                cv2.putText(outimg, "%d, %.2f" % (cur_whites, change_ratio), \
+                cv2.putText(attimg, "%d, %.2f" % (cur_whites, change_ratio), \
                         (0, abs(sub_h)-10), cv2.FONT_HERSHEY_PLAIN, 2.0, \
                         (0, 255, 255), 2)
 
-            out_buffer.append(outimg)
+            out_buffer.append(attimg)
     
         if len(out_buffer) == montage_height:
             out_image = np.concatenate(out_buffer, 0)
@@ -57,3 +59,28 @@ def export_subtitles(video_path, outdir, data_vec,
         out_image = np.concatenate(out_buffer, 1)
         cv2.imwrite(outdir + "/%04d.png" % out_counter, out_image)
 
+def attenuate_background(img, factor = 0.5, params = {}):
+    subtitle_color = params.get("subtitle_color", (230, 230, 230))
+    ret_img = np.zeros(img.shape, dtype = np.uint8)
+    att_img = np.uint8(img * factor)
+    
+    mask = np.ones(img.shape[0:2], dtype = np.uint8) * 255
+    for col_i in range(3):
+        _, mask_x = cv2.threshold(img[:,:,col_i], subtitle_color[col_i], 255,
+                cv2.THRESH_BINARY)
+        cv2.bitwise_and(mask, mask_x, mask)
+    cv2.dilate(mask, 
+        cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2)),
+        mask)
+    mask_inv = cv2.bitwise_not(mask)
+    # cv2.imshow('mask', mask); cv2.waitKey()
+
+    for col_i in range(3):
+        ori_img = img[:,:,col_i]
+        sub_img = cv2.bitwise_and(ori_img, ori_img, mask = mask)
+        att_x = att_img[:,:,col_i]
+        att_bg = cv2.bitwise_and(att_x, att_x, mask = mask_inv)
+        op_img = cv2.add(att_bg, sub_img)
+        ret_img[:,:,col_i] = op_img
+
+    return ret_img
